@@ -1,95 +1,72 @@
-import Image from "next/image";
 import styles from "./page.module.css";
+import {
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+} from "@mui/material";
 
-export default function Home() {
-  return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.js</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
 
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
+const getPokemon = async () => {
+  // Initial API fetch
+  const response = await fetch("https://pokeapi.co/api/v2/pokemon?limit=151");
 
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
+  if (!response.ok) {
+    throw new Error("Something went wrong");
+  }
 
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
+  const data = await response.json();
 
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore starter templates for Next.js.</p>
-        </a>
+  // Fetch additional data for each Pokemon
+  const pokemonData = await Promise.all(
+    data.results.map(async (pokemon) => {
+      const pokemonResponse = await fetch(pokemon.url);
+      if (!pokemonResponse.ok) {
+        throw new Error("Failed to fetch data");
+      }
 
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
+      const pokemonData = await pokemonResponse.json();
+      return {
+        name: pokemon.name,
+        types: pokemonData.types.map((type) => type.type.name),
+      };
+    })
   );
-}
+
+  return pokemonData;
+};
+
+const Home = async () => {
+  const pokemons = await getPokemon();
+  
+
+  return (
+    <div className={styles.container}>
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell>Pokemon Names</TableCell>
+            <TableCell>Pokemon Type</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {pokemons.map((pokemon) => {
+            return (
+              <TableRow key={pokemon.name}>
+                <TableCell>{pokemon.name}</TableCell>
+                <TableCell>
+                  {pokemon.types.map((type, index) => {
+                    return <span key={index} >{type}</span>;
+                  })}
+                </TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
+    </div>
+  );
+};
+
+export default Home;
