@@ -1,0 +1,10 @@
+body {
+  text-transform: capitalize;
+}
+
+.tableContainer {
+  width: 50%;
+  height: 50%;
+  margin: auto;
+  margin-top: 4%;
+}

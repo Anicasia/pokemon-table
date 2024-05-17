@@ -1,4 +1,4 @@
-import styles from "./page.module.css";
+import OptionsTableCell from "@/components/OptionsTableCell";
 import {
   Table,
   TableHead,
@@ -6,43 +6,14 @@ import {
   TableRow,
   TableCell,
 } from "@mui/material";
-
-
-const getPokemon = async () => {
-  // Initial API fetch
-  const response = await fetch("https://pokeapi.co/api/v2/pokemon?limit=151");
-
-  if (!response.ok) {
-    throw new Error("Something went wrong");
-  }
-
-  const data = await response.json();
-
-  // Fetch additional data for each Pokemon
-  const pokemonData = await Promise.all(
-    data.results.map(async (pokemon) => {
-      const pokemonResponse = await fetch(pokemon.url);
-      if (!pokemonResponse.ok) {
-        throw new Error("Failed to fetch data");
-      }
-
-      const pokemonData = await pokemonResponse.json();
-      return {
-        name: pokemon.name,
-        types: pokemonData.types.map((type) => type.type.name),
-      };
-    })
-  );
-
-  return pokemonData;
-};
+import "./styles.css";
+import getPokemon from "../utils/api";
 
 const Home = async () => {
   const pokemons = await getPokemon();
-  
 
   return (
-    <div className={styles.container}>
+    <div className="tableContainer">
       <Table>
         <TableHead>
           <TableRow>
@@ -55,11 +26,7 @@ const Home = async () => {
             return (
               <TableRow key={pokemon.name}>
                 <TableCell>{pokemon.name}</TableCell>
-                <TableCell>
-                  {pokemon.types.map((type, index) => {
-                    return <span key={index} >{type}</span>;
-                  })}
-                </TableCell>
+                <OptionsTableCell types={pokemon.types} />
               </TableRow>
             );
           })}
